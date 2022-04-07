@@ -1,22 +1,33 @@
+const usernameInput = document.querySelector("#usernameInput")
+const passwordInput = document.querySelector("#passwordInput")
+const LoginBtn = document.querySelector("#LoginBtn")
 
-form.onsubmit = async event => {
-	event.preventDefault();
-	username = usernameInput.value.trim()
-	password = passwordInput.value.trim()
-	if (username && password) {
-		let response = await request('/login', 'POST', {
-			username,
-			password
-		})
-		let data = await response
+LoginBtn.onsubmit = async event => {
+    event.preventDefault()
 
-		if (data.status != 200) {
-			return alert(data.message)
-		}else{
-			console.log("asdasd")
-			console.log(data)
-			window.localStorage.setItem('token', response.token)
-			window.location = 'index.html'
-		}
-	}
+    let user = {
+        username: usernameInput.value,
+        password: passwordInput.value
+    }
+
+    let response = await fetch(host+'/login',{
+        method: "POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body: JSON.stringify(user),
+    })
+    response = await response.json()
+    if(!response.ok) return alert(response.message)
+
+
+    window.localStorage.setItem('token', response.token)
+
+    window.localStorage.setItem('avatar', response.user.avatar)
+
+    window.location = './index.html'
+}
+const showButton = document.querySelector("#showButton")
+showButton.onclick = () => {
+    passwordInput.type = passwordInput.type === 'password' ? "text": "password"
 }

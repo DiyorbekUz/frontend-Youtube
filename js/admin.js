@@ -1,98 +1,98 @@
-let videoList = document.querySelector(".videos-list")
+const Title = document.querySelector("#videoInput")
+const video = document.querySelector("#uploadInput")
+const upload = document.querySelector("#upload")
+const videosList = document.querySelector(".videos-list")
 
+window.addEventListener("DOMContentLoaded",async () => {
+    upload.addEventListener("submit",async (e) => {
+        e.preventDefault()
+        const title = Title.value?.trim()
 
-form.onsubmit = async function(e){
-	e.preventDefault()
+        if(!title || !video.files?.[0]) return alert("Please chose title or video")
 
-	let caption = videoInput.value.trim()
-	let upload = uploadInput.files[0]
+        let formData = new FormData()
+        formData.append('Title', title)
+        formData.append('video', video.files[0])
 
-	if(caption == "" || upload == undefined){
-		return
-	}
-	if(caption.length < 5){
-		alert("Caption must be less than 5 characters")
-		return
-	}
-	if(upload.size > 50 * 1024 * 1024){
-		alert("File size must be less than 50MB")
-		return
-	}
+        let response = await fetch(host + "/video", {
+            method: "POST",
+            headers: {
+                token,
+            },
+            body: formData
+        })
+        response = await response.json()
+        if(!response.ok) alert(response.message)
 
-	let formData = new FormData()
-	formData.append("caption", caption)
-	formData.append("video", upload)
+        Title.value = ""
+        video.files = null
+        alert("Video uploaded")
+        renderVideos()
+    })
+    renderVideos()
+})
+async function renderVideos() {
+    let videos = await fetch(host + "/myvideos", {
+        headers: {
+            token,
+        }
+    })
+    if(videos.status === 500) return window.location = "./login.html"
+    videos = await videos.json()
+    videosList.innerHTML = ""
+    for(let video of videos.videos) {
+        let li = document.createElement('li')
+        let videoT = document.createElement('video')
+        let p = document.createElement('p')
+        let img = document.createElement('img')
 
-	let response = await request("/video", "POST", formData)
+        li.className = 'video-item'
+        p.className = 'content'
+        img.className = 'delete-icon'
 
-	console.log(response);
-	if(response.status == 200){
-		console.log(response)
-	}
+        videoT.setAttribute('controls', true)
+        videoT.setAttribute('src', host+ "/videos/"+ video.fileName)
+        p.setAttribute('contenteditable', true)
+        img.setAttribute('src', './img/delete.png')
+        img.width = 25
+
+        p.textContent = video.Title
+
+        li.append(videoT, p, img)
+        videosList.append(li)
+
+        p.onkeydown = async (event) => {
+            if (event.keyCode === 13 && p.textContent !== video.Title) {
+                let response = await fetch(host+'/video', {
+                    method: 'PUT',
+                    headers: {
+                        "Content-Type":"application/json",
+                        token,
+                    },
+                    body: JSON.stringify({
+                        videoId: video.videoId,
+                        Title: p.textContent
+                    })
+                })
+                response =await response.json()
+                if(!response.ok)return alert(response.message)
+            }
+        }
+
+        img.onclick = async () => {
+            let response = await fetch(host+'/video',{
+                method:"DELETE",
+                headers: {
+                    "Content-Type":"application/json",
+                    token,
+                },
+                body: JSON.stringify({
+                    videoId: video.videoId,
+                })
+            })
+            response = await response.json()
+            if(!response.ok) return alert(response.message)
+            li.remove()
+        }
+    }
 }
-
-
-async function renderVideos(){
-	let videos = await request("/video", "GET")
-	let userId = await request("/getId", "GET")
-	
-
-    if(renderVideos?.videos?.length == videos?.length) {
-		if(JSON.stringify(renderVideos.videos) == JSON.stringify(videos)) {
-			return
-		}
-	}
-
-	renderVideos.videos = videos
-    
-	videos = videos.filter(video => video.userId == userId.userId)
-                    // <li class="video-item">
-                    //     <video src="https://www.w3schools.com/html/mov_bbb.mp4" controls=""></video>
-                    //     <p class="content" data-id="2" contenteditable="true">dars</p>
-                    //     <img src="./img/delete.png" width="25px" alt="upload" class="delete-icon" data-id="2">
-                    // </li>
-	videoList.innerHTML = null
-	for(let i = 0;  i< videos.length; i++){
-		let [videoItem, video, caption, deleteIcon] = createElements("li", "video", "p", "img")
-		videoItem.classList.add("video-item")
-		video.src = videos[i].video
-		video.controls = true
-		caption.innerText = videos[i].caption
-		caption.setAttribute("data-id", videos[i].videoId)
-		caption.setAttribute("contenteditable", "true")
-		caption.setAttribute("onblur", "updateCaption({videoId: this.dataset.id, caption: this.innerText})")
-
-		caption.classList.add("content")
-		deleteIcon.src = "./img/delete.png"
-		deleteIcon.setAttribute("data-id", videos[i].videoId)
-
-		deleteIcon.classList.add("delete-icon")
-		deleteIcon.setAttribute("onclick", "deleteVideo(this)")
-		deleteIcon.setAttribute("width", "25px")
-		videoItem.append(video, caption, deleteIcon)
-		videoList.append(videoItem)
-	}
-
-	updateCaption = async function({videoId, caption}){
-		let response = await request(`/video`, "PUT", {videoId, caption})
-		if(response){
-			alert(`#${videoId} Video updated successfully`)
-		}
-		if(response.status == 200){
-			console.log(response)
-		}
-	}
-
-	deleteVideo =	async function(id){
-		let videoId = id.dataset.id
-		let response = await request("/video", "DELETE", {videoId})
-		console.log(response)
-		if(response){
-			alert(`#${videoId} Video deleted successfully`)
-		}
-	}
-}
-
-
-
-setInterval(renderVideos, 500)
