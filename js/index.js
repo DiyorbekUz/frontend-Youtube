@@ -1,144 +1,137 @@
-const avatar = window.localStorage.getItem("avatar")
-const avatarImg = document.querySelector('.avatar-img')
-if(avatar){
-    avatarImg.src = host+"/logos/"+avatar
-}
-const members = document.querySelector("#members")
-const searchBox = document.querySelector(".search-box")
-const videosList = document.querySelector("#videosList")
-const datalist = document.querySelector("#datalist")
-const searchInput = document.querySelector(".search-input")
-const microphone = document.querySelector("#microphone")
+class App{
+    host = 'https://app-the-youtube.herokuapp.com/'
+    allChannels = document.querySelector('#allChannels')
+    header = document.querySelector('.header-right')
 
-window.addEventListener("DOMContentLoaded",async () => {
+    videos = document.querySelector('.iframes-list')
+    async getAllUsers(){
+        let response = await fetch('https://app-the-youtube.herokuapp.com/users', {
+            method: 'GET',
+            headers: {
+                token: window.localStorage.getItem('token')
+            }
+        })
+        response = await response.json()
+        return response
+    }
 
-    let users = await fetch(host + '/info')
-        users = await users.json()
-        renderUsers(users.users)
-        renderVideos()
-    searchBox.onsubmit = event => {
-        event.preventDefault()
-        searchInput.value.trim()
-        if(searchInput.value !== "") {
-            return renderVideos(false, searchInput.value)
+    async getAllVideos(){
+        let response = await fetch('https://app-the-youtube.herokuapp.com/videos', {
+            method: 'GET',
+            headers: {
+                token: window.localStorage.getItem('token')
+            }
+        })
+        response = await response.json()
+        return response
+    }
+
+    async renderUsers(){
+        let users = await this.getAllUsers()
+        this.allChannels.innerHTML = ''
+
+        for(let user of users){
+            let el = allUsers(user)
+            this.allChannels.innerHTML += el
         }
-    }
-    const voice = new webkitSpeechRecognition()
 
-    voice.lang = 'uz-UZ'
-    voice.continious = false
-
-    voice.onresult = event => {
-        searchInput.value = event.results[0][0].transcript
-        return renderVideos(false, searchInput.value)
     }
 
-    microphone.onclick = () => {
-        voice.start()
-    }
-    voice.onaudioend = () => {
-        voice.stop()
-    }
-    avatarImg.onclick = () => {
-        if(!window.localStorage.token){
-            window.location = "./register.html"
-        }
-        window.location = "./admin.html"
-    }
-    setInterval(async () => {
-        let users = await fetch(host + '/info')
-        users = await users.json()
-        renderUsers(users.users)
-        renderVideos()
-    },5000)
-})
-
-function renderUsers(users) {
-    if(JSON.stringify(renderUsers.users) === JSON.stringify(users)) return
-
-    if(!renderUsers.users){
-        renderUsers.users = users
-    }
-    if (users.length) {
-        members.innerHTML = `<h1>YouTube Members</h1>
-        <li class="channel active" onclick="main(this)">
-        <a href="#">
-        <svg viewbox="0 0 24 24" focusable="false" style="pointer-events: none; display: block; width: 30px; height: 30px;"><g><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8" class="style-scope yt-icon"></path></g></svg>
-        <span>Home</span>
-        </a>
-        </li>`
-        for (let user of users) {
-            const [li,a,img,span] = createElements("li","a","img","span")
-            li.classList.add("chanel")
-            a.href = "#"
-            img.setAttribute("src",`${host+'/logos/'+user.avatar}`)
-            img.alt = "chanel-icon"
-            img.style.width = "30px"
-            img.style.height = "30px"
-            span.textContent = user.username
-
-            a.append(img,span)
-            li.append(a)
-            members.append(li)
-
-            li.onclick = async () => {
-                const active = document.querySelector(".active")
-                active.classList.remove("active")
-                li.classList.add("active")
-                window.localStorage.currentUser = user.userId
-                renderVideos(user.userId)
+    async renderAllVideos(searchValue=''){
+        let allVideos = await this.getAllVideos()
+        this.videos.innerHTML = ''
+        datalist.innerHTML = ``
+        if (!searchValue.trim()) {
+            for(let video of allVideos){
+                datalist.innerHTML += `<option value="${video.videoTitle}">`
+                let el = videoForm(video)
+                this.videos.innerHTML += el
+            }
+        }else{
+            for(let video of allVideos){
+                if(video.videoTitle.toLowerCase().includes(searchValue.toLocaleLowerCase())){
+                    let el = videoForm(video)
+                    this.videos.innerHTML += el
+                }
             }
         }
     }
-    renderUsers.users = users
-}
 
-function main(e){
-    const active = document.querySelector(".active")
-    active.classList.remove("active")
-    e.classList.add("active")
-    renderVideos()
-}
-async function renderVideos(currentUser,search) {
-    let videos = await fetch(host + `/search?`+(currentUser?"userId="+currentUser:"")+ (search?"search="+search: ""))
-    videos = (await videos.json()).videos
-
-    if(JSON.stringify(renderVideos.videos) === JSON.stringify(videos)) return
-    if(!renderVideos.videos){
-        renderVideos.videos = videos
+    async chooseUser(username){
+        let response = await fetch('https://app-the-youtube.herokuapp.com/user/'+username, {
+            method: 'GET',
+            headers: {
+                token: window.localStorage.getItem('token')
+            }
+        })
+        response = await response.json()
+        return response
     }
 
-    videosList.innerHTML = ""
-    datalist.innerHTML = ""
-    
-    for (let video of videos) {
-        if(!search) {
-            let [option] = createElements("option")
-            option.value = video.Title
-            datalist.append(option)
+    async renderChooseUser(username){
+        let vd = await this.chooseUser(username)
+        this.videos.innerHTML = ''
+        for(let video of vd){
+            let el = videoForm(video)
+            this.videos.innerHTML += el
         }
-        videosList.innerHTML += `
-        <li class="iframe">
-            <video src=${host + "/videos/" + video.fileName} controls=""></video>
-            <div class="iframe-footer">
-                <img src="${host + "/logos/" + video.user.avatar}" alt="channel-icon">
-                <div class="iframe-footer-text">
-                    <h2 class="channel-name">${video.user.username}</h2>
-                    <h3 class="iframe-title">${video.Title}</h3>
-                    <time class="uploaded-time">${video.Created}</time>
-                    <a class="download" href="${host + "/video/" + video.fileName}" download>
-                        <span>${video.size} MB</span>
-                        <img alt="download" src="./img/download.png">
-                    </a>
-                </div>                  
-            </div>
-        </li>
-        `
-    renderVideos.videos = videos
+    }
+
+
+    async renderUser(){
+        let UserlocalStorage = JSON.parse(window.localStorage.getItem('user'))
+        let el = userr(UserlocalStorage)
+        this.header.innerHTML = el
+    }
+
+    
+}
+
+let obj = new App();
+setInterval(() => {
+    obj.renderUsers()
+    obj.renderUser()
+}, 1000);
+obj.renderAllVideos()
+
+function onclickk(event){
+    obj.renderChooseUser(event.querySelector('span').textContent);
+}
+
+
+
+let searchInput = document.querySelector('.search-input')
+let searchBtn = document.querySelector('.search-btn')
+let datalist = document.querySelector('#datalist')
+searchInput.onkeyup = (event) =>{    
+    if(event.keyCode == 13){
+        if (searchInput.value.trim()) {
+            obj.renderAllVideos(searchInput.value)
+        }else{
+            obj.renderAllVideos()
+        }
+    }else
+
+    if(!searchInput.value.trim()){
+        obj.renderAllVideos()   
     }
 }
 
 
-// function
+function voice() {
+	const voiceRecorder = new webkitSpeechRecognition()
+	voiceRecorder.lang = 'uz-UZ'
 
-// console.log("hello")
+	voiceRecorder.start()
+
+	voiceRecorder.onresult = (event) => {
+		searchInput.value = event.results[0][0].transcript
+        obj.renderAllVideos(event.results[0][0].transcript)
+	}
+
+	voiceRecorder.onaudioend = () => {
+		voiceRecorder.stop()
+	}
+}
+
+searchInput.onkey

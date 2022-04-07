@@ -9,6 +9,17 @@ html {
     padding: 0;
 }
 
+.error {
+    margin-bottom: 20px;
+    line-height: 1.66;
+    font-weight: 800;
+    color: red;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    font-family: poppins, sans-serif;
+}
+
 input:not(input[type="checkbox"]):-webkit-input-placeholder {
     color: #999;
     font-family: poppins, sans-serif;

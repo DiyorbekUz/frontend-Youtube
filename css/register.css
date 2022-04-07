@@ -90,6 +90,18 @@ input:not(input[type="checkbox"]):focus::-webkit-input-placeholder {
     align-items: center;
     font-family: poppins, sans-serif;
 }
+
+.error {
+    margin-bottom: 20px;
+    line-height: 1.66;
+    font-weight: 800;
+    color: red;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    font-family: poppins, sans-serif;
+}
+
 .title span {
     margin-right: 20px;
 }
