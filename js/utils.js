@@ -1,20 +1,19 @@
-const hostName = "https://app-the-youtube.herokuapp.com";
+const backend = "https://dashboard.heroku.com/apps/app-the-youtube";
 async function request(route, method, body){
 	try{
 		let headers = {
 			token: window.localStorage.getItem('token')
 		}
-	
-		if(!(body instanceof FormData)) {
+		if (!(body instanceof FormData) && method != 'GET') {
 			headers['Content-Type'] = 'application/json'
+			body = JSON.stringify(body || null)
 		}
 	
-		let response = await fetch(hostName + route, {
-			method,
+		let response = await fetch(backend + route, {
+			method: method,
 			headers,
-			body: (body instanceof FormData) ? body : JSON.stringify(body)
+			body
 		})
-	
 	
 		if(response.status == 401){
 			return await response.json()

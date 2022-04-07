@@ -46,6 +46,11 @@ async function renderVideos(){
 	renderVideos.videos = videos
     
 	videos = videos.filter(video => video.userId == userId.userId)
+                    // <li class="video-item">
+                    //     <video src="https://www.w3schools.com/html/mov_bbb.mp4" controls=""></video>
+                    //     <p class="content" data-id="2" contenteditable="true">dars</p>
+                    //     <img src="./img/delete.png" width="25px" alt="upload" class="delete-icon" data-id="2">
+                    // </li>
 	videoList.innerHTML = null
 	for(let i = 0;  i< videos.length; i++){
 		let [videoItem, video, caption, deleteIcon] = createElements("li", "video", "p", "img")
