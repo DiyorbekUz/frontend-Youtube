@@ -4,16 +4,17 @@ async function request(route, method, body){
 		let headers = {
 			token: window.localStorage.getItem('token')
 		}
-		if (!(body instanceof FormData) && method != 'GET') {
+	
+		if(!(body instanceof FormData)) {
 			headers['Content-Type'] = 'application/json'
-			body = JSON.stringify(body || null)
 		}
 	
-		let response = await fetch(backend + route, {
-			method: method,
+		let response = await fetch(hostName + route, {
+			method,
 			headers,
-			body
+			body: (body instanceof FormData) ? body : JSON.stringify(body)
 		})
+	
 	
 		if(response.status == 401){
 			return await response.json()
