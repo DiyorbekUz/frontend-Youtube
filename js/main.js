@@ -159,8 +159,6 @@ const renderProfileImage = async () => {
 renderProfileImage()
 
 
-
-
 let search;
 
 
@@ -201,30 +199,6 @@ form.onsubmit = async function(e){
 
 
 renderDataList()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 setInterval(() => {
 	renderVideos({userId: id || null, videoId: search || null})
