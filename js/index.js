@@ -1,7 +1,7 @@
 const avatar = window.localStorage.getItem("avatar")
 const avatarImg = document.querySelector('.avatar-img')
 if(avatar){
-    avatarImg.src = host+"/avatar/"+avatar
+    avatarImg.src = host+"/logos/"+avatar
 }
 const members = document.querySelector("#members")
 const searchBox = document.querySelector(".search-box")
@@ -71,7 +71,7 @@ function renderUsers(users) {
             const [li,a,img,span] = createElements("li","a","img","span")
             li.classList.add("chanel")
             a.href = "#"
-            img.setAttribute("src",`${host+'/avatar/'+user.avatar}`)
+            img.setAttribute("src",`${host+'/logos/'+user.avatar}`)
             img.alt = "chanel-icon"
             img.style.width = "30px"
             img.style.height = "30px"
@@ -121,7 +121,7 @@ async function renderVideos(currentUser,search) {
         <li class="iframe">
             <video src=${host + "/videos/" + video.fileName} controls=""></video>
             <div class="iframe-footer">
-                <img src="${host + "/avatar/" + video.user.avatar}" alt="channel-icon">
+                <img src="${host + "/logos/" + video.user.avatar}" alt="channel-icon">
                 <div class="iframe-footer-text">
                     <h2 class="channel-name">${video.user.username}</h2>
                     <h3 class="iframe-title">${video.Title}</h3>
