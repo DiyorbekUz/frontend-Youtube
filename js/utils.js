@@ -1,4 +1,4 @@
-const backend = "https://dashboard.heroku.com/apps/app-the-youtube";
+const backend = "https://app-the-youtube.herokuapp.com";
 async function request(route, method, body){
 	try{
 		let headers = {
